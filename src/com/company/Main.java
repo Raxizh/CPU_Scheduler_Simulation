@@ -1,5 +1,7 @@
 package com.company;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
 public class Main {
@@ -7,7 +9,11 @@ public class Main {
     //        java -cp out/production/untitled104 com.company.Main S # (spaces between inputs) (replace forward slashes with back slashes)
     //TODO: rename the .iml file to "Project_3"
     static int timeQuantum;
-    static Semaphore queue = new Semaphore(1);
+    static Queue readyQueue;
+    static Semaphore CPUaccess = new Semaphore(1);
+    static Semaphore currentlyRunning = new Semaphore(1);
+    //two semaphores: CPU and RUN (currently running)
+
 
     public static void main(String[] args) {
         try {
@@ -50,11 +56,26 @@ public class Main {
 
     public static void createTaskThreads() {
         int T = Randomizer.generate(1,25);
+        int bTime;
+        readyQueue = new LinkedList();
+
         for(int i = 0; i < T; i++) {
-            new Task().start();
+            bTime = Randomizer.generate(1,50);
+            Task t = new Task(i, bTime);
+            readyQueue.add(t);
         }
+        new CPU(0).start();
+        Task t2;
+        System.out.println("Ready queue:");
+        /*for(int i = 0; i < T; i++) {
+            t2 = (Task) readyQueue.poll();
+            System.out.println("Task " + t2.getThreadId() + " - Max Burst: " + t2.getMaxBurstTime() + " Current Burst: " + t2.getCurrentBurstTime());
+
+            //t2.start();
+        }*/
 
     }
+    /* switches context / tasks*/
 
     public static void Dispatcher() {
         System.out.println("In the dispatcher...");
