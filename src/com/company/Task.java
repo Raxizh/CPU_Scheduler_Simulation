@@ -23,18 +23,14 @@ public class Task extends Thread{
         //System.out.println("Thread " + id + " has entered with burst time of: " + burstTime);
     }
 
-    public void threadExecutor() {
+    public void taskInfoDisplay() {
         try {
             Main.currentlyRunning.acquire();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("Executing thread " + id);
-        /*for(int i = 0; i < burstTime; i++) {
-            System.out.println("Thread - " + id + " current burst - " + currentBurstTime);
-            currentBurstTime++;
-        }*/
-        System.out.println("Thread - " + id + " - finished executing");
+        currentBurstTime++;
+        System.out.println("Task - " + id + "    |    " + "On burst " + currentBurstTime + " Max burst " + burstTime);
         Main.currentlyRunning.release();
     }
 }
