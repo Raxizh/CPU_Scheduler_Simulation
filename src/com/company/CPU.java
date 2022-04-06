@@ -11,10 +11,19 @@ public class CPU extends Thread {
     @Override
     public void run() {
         System.out.println("Using CPU " + id);
-        //FCFS();
-        //RoundRobin();
-        //NSFJ();
-        PSJF();
+        if(Main.cmdLineInput1.equals("1")) {
+            FCFS();
+        }
+        else if (Main.cmdLineInput1.equals("2")) {
+            RoundRobin();
+        }
+        else if (Main.cmdLineInput1.equals("3")) {
+            NSFJ();
+        }
+        else if (Main.cmdLineInput1.equals("4")) {
+            PSJF();
+        }
+
     }
 
     public int getCPUId() {
@@ -23,6 +32,7 @@ public class CPU extends Thread {
 
     public void FCFS() {
         while (!Main.readyQueue.isEmpty()) {
+            Main.printQueue();
             try {
                 Task t;
                 t = (Task) Main.readyQueue.poll();
@@ -41,8 +51,10 @@ public class CPU extends Thread {
         int timeTemp = Main.timeQuantum;
         while (!Main.readyQueue.isEmpty()) {
             try {
+                Main.printQueue();
                 Task t;
                 t = (Task) Main.readyQueue.poll();
+                System.out.println("\n");
                 for(int i = 0; i < timeTemp; i++) {
                     t.taskInfoDisplay();
                     if(t.getCurrentBurstTime() == t.getMaxBurstTime())
@@ -50,6 +62,9 @@ public class CPU extends Thread {
                 }
                 if(t.getCurrentBurstTime() != t.getMaxBurstTime())
                     Main.readyQueue.offer(t);
+                else {
+                    System.out.println("Task " + t.getThreadId() + " has finished executing" + "\n");
+                }
             }
             catch(Exception e) {
                 e.printStackTrace();
@@ -58,6 +73,7 @@ public class CPU extends Thread {
     }
 
     public void NSFJ () {
+        Main.printQueue();
         while (!Main.readyQueue.isEmpty()) {
             int shortestTaskTemp = 100;
             Task t;
@@ -76,6 +92,7 @@ public class CPU extends Thread {
             }
             System.out.println("Task " + t.getThreadId() + " has finished executing" + "\n");
             Main.readyQueue.remove(index);
+            Main.printQueue();
 
         }
     }
@@ -83,7 +100,6 @@ public class CPU extends Thread {
     public void PSJF() {
         Main.printQueue();
         while (!Main.readyQueue.isEmpty()) {
-            int random = Main.Randomizer.generate(4,10);
             int shortestTaskTemp = 100;
             Task t;
             int index = 0;
@@ -95,11 +111,14 @@ public class CPU extends Thread {
             }
             t = (Task) Main.readyQueue.get(index);
             for(int i = 0; i < t.getMaxBurstTime(); i++) {
+                int random = Main.Randomizer.generate(3,10);
                 t.taskInfoDisplay();
+                if(Main.readyQueue.size() >= 25) {
+                    random = 0;
+                }
                 if(random == 10) {
                     Main.addTaskThread();
                     Main.printQueue();
-                    //System.out.println("Task thread " + ((Task)Main.readyQueue.getLast()).getThreadId() + " added to ready queue with a burst time of " + ((Task)Main.readyQueue.getLast()).getMaxBurstTime());
                 }
                 if(((Task) Main.readyQueue.getLast()).getMaxBurstTime() < t.getMaxBurstTime()) {
                     t = (Task) Main.readyQueue.getLast();
@@ -111,6 +130,7 @@ public class CPU extends Thread {
                     Main.printQueue();
                     break;
                 }
+
             }
 
 

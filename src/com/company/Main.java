@@ -13,6 +13,7 @@ public class Main {
     static Semaphore CPUaccess = new Semaphore(1);
     static Semaphore currentlyRunning = new Semaphore(1);
     static int id;
+    static String cmdLineInput1;
     //two semaphores: CPU and RUN (currently running)
 
 
@@ -20,11 +21,13 @@ public class Main {
         try {
             if (args[0].equals("S") || args[0].equals("s")) {
                 if (args[1].equals("1")) {
+                    cmdLineInput1 = args[1];
                     createTaskThreads();
                     System.out.println("FirstComeFirstServe, S1");
                 }
                 else if (args[1].equals("2")) {
                     timeQuantum = Integer.parseInt(args[2]);
+                    cmdLineInput1 = args[1];
                     createTaskThreads();
                     if (timeQuantum > 1 && timeQuantum <= 10)
                         System.out.println("RR, time quantum: " + timeQuantum + " S2#");
@@ -32,10 +35,12 @@ public class Main {
                         System.out.println("Quantum time must be > 1 and < 11...");
                 }
                 else if (args[1].equals("3")) {
+                    cmdLineInput1 = args[1];
                     createTaskThreads();
                     System.out.println("Non-preemptive SJF, S3");
                 }
                 else if (args[1].equals("4")) {
+                    cmdLineInput1 = args[1];
                     createTaskThreads();
                     System.out.println("Preemptive SJF, S4");
                 }
@@ -86,7 +91,7 @@ public class Main {
     public static void addTaskThread() {
         int bTime;
         id++;
-        bTime = Randomizer.generate(2,3);
+        bTime = Randomizer.generate(2,10);
         Task t = new Task(id, bTime);
         readyQueue.add(t);
 
