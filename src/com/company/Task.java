@@ -17,6 +17,9 @@ public class Task extends Thread{
     public int getThreadId () {
         return id;
     }
+    public String print() {
+        return "Task " + id + ", MB " + getMaxBurstTime() + ", CB " + getCurrentBurstTime();
+    }
 
     @Override
     public void run() {

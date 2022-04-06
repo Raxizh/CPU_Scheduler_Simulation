@@ -12,6 +12,7 @@ public class Main {
     static LinkedList readyQueue;
     static Semaphore CPUaccess = new Semaphore(1);
     static Semaphore currentlyRunning = new Semaphore(1);
+    static int id;
     //two semaphores: CPU and RUN (currently running)
 
 
@@ -34,8 +35,10 @@ public class Main {
                     createTaskThreads();
                     System.out.println("Non-preemptive SJF, S3");
                 }
-                else if (args[1].equals("4"))
+                else if (args[1].equals("4")) {
+                    createTaskThreads();
                     System.out.println("Preemptive SJF, S4");
+                }
                 else {
                     System.out.println("Invalid input, please re-run...");
                 }
@@ -67,10 +70,25 @@ public class Main {
             Task t = new Task(i, bTime);
             readyQueue.add(t);
         }
+        id = readyQueue.size();
         new CPU(0).start();
-        Task t2;
-        System.out.println("Ready queue:");
 
+    }
+    public static void printQueue() {
+        System.out.println("\n" +"------------ Ready Queue ------------");
+        for(int i = 0; i < readyQueue.size(); i++) {
+            System.out.println(((Task)readyQueue.get(i)).print());
+        }
+        System.out.println("------------------------------------" + "\n");
+
+    }
+
+    public static void addTaskThread() {
+        int bTime;
+        id++;
+        bTime = Randomizer.generate(2,3);
+        Task t = new Task(id, bTime);
+        readyQueue.add(t);
 
     }
 

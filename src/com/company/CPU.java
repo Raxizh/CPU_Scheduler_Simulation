@@ -1,11 +1,8 @@
 package com.company;
 
-import java.util.Iterator;
-import java.util.Queue;
 
 public class CPU extends Thread {
     int id;
-    Iterator iterator;
 
     public CPU(int id) {
         this.id = id;
@@ -16,7 +13,8 @@ public class CPU extends Thread {
         System.out.println("Using CPU " + id);
         //FCFS();
         //RoundRobin();
-        NSFJ();
+        //NSFJ();
+        PSJF();
     }
 
     public int getCPUId() {
@@ -78,6 +76,43 @@ public class CPU extends Thread {
             }
             System.out.println("Task " + t.getThreadId() + " has finished executing" + "\n");
             Main.readyQueue.remove(index);
+
+        }
+    }
+
+    public void PSJF() {
+        Main.printQueue();
+        while (!Main.readyQueue.isEmpty()) {
+            int random = Main.Randomizer.generate(4,10);
+            int shortestTaskTemp = 100;
+            Task t;
+            int index = 0;
+            for(int i = 0; i < Main.readyQueue.size(); i++){
+                if(((Task) Main.readyQueue.get(i)).getMaxBurstTime() < shortestTaskTemp) {
+                    shortestTaskTemp = ((Task) Main.readyQueue.get(i)).getMaxBurstTime();
+                    index = i;
+                }
+            }
+            t = (Task) Main.readyQueue.get(index);
+            for(int i = 0; i < t.getMaxBurstTime(); i++) {
+                t.taskInfoDisplay();
+                if(random == 10) {
+                    Main.addTaskThread();
+                    Main.printQueue();
+                    //System.out.println("Task thread " + ((Task)Main.readyQueue.getLast()).getThreadId() + " added to ready queue with a burst time of " + ((Task)Main.readyQueue.getLast()).getMaxBurstTime());
+                }
+                if(((Task) Main.readyQueue.getLast()).getMaxBurstTime() < t.getMaxBurstTime()) {
+                    t = (Task) Main.readyQueue.getLast();
+                    System.out.println("Task " + t.getThreadId() + " has preempted with a burst time of " + t.getMaxBurstTime());
+                }
+                if(t.getCurrentBurstTime() >= t.getMaxBurstTime()) {
+                    Main.readyQueue.remove(t);
+                    System.out.println("Task " + t.getThreadId() + " has finished executing" + "\n");
+                    Main.printQueue();
+                    break;
+                }
+            }
+
 
         }
     }
