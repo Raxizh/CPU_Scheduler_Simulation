@@ -12,8 +12,14 @@ public class Main {
     static LinkedList readyQueue;
     static Semaphore CPUaccess = new Semaphore(1);
     static Semaphore currentlyRunning = new Semaphore(1);
+    static Semaphore CPUbarrier = new Semaphore(0);
     static int id;
+    static int cpuCount;
     static String cmdLineInput1;
+    static int numCores;
+    static Semaphore sem = new Semaphore(0);
+    static Semaphore mutex = new Semaphore(1);
+
     //two semaphores: CPU and RUN (currently running)
 
 
@@ -21,18 +27,45 @@ public class Main {
         try {
             if (args[0].equals("S") || args[0].equals("s")) {
                 if (args[1].equals("1")) {
-                    cmdLineInput1 = args[1];
-                    createTaskThreads();
-                    System.out.println("FirstComeFirstServe, S1");
+                    if(args.length < 3) {
+                        numCores = 1;
+                        cmdLineInput1 = args[1];
+                        createTaskThreads();
+                        System.out.println("FirstComeFirstServe, S1");
+                    }
+                    else if(args[2].equals("-C") || args[2].equals("-c")) {
+                        cmdLineInput1 = args[1];
+                        numCores = Integer.parseInt(args[3]);
+                        createCoreThreads(numCores);
+                        cmdLineInput1 = args[1];
+                        //createTaskThreads();
+                        System.out.println("FirstComeFirstServe, S1, cores: " + args[3]);
+                    }
+
                 }
                 else if (args[1].equals("2")) {
-                    timeQuantum = Integer.parseInt(args[2]);
-                    cmdLineInput1 = args[1];
-                    createTaskThreads();
-                    if (timeQuantum > 1 && timeQuantum <= 10)
-                        System.out.println("RR, time quantum: " + timeQuantum + " S2#");
-                    else
-                        System.out.println("Quantum time must be > 1 and < 11...");
+                    if(args.length < 4){
+                        timeQuantum = Integer.parseInt(args[2]);
+                        cmdLineInput1 = args[1];
+                        createTaskThreads();
+                        if (timeQuantum > 1 && timeQuantum <= 10)
+                            System.out.println("RR, time quantum: " + timeQuantum + " S2# " + "cores: 1");
+                        else
+                            System.out.println("Quantum time must be > 1 and < 11...");
+                        }
+                    else if(args[3].equals("-C") || args[3].equals("-c")){
+                        timeQuantum = Integer.parseInt(args[2]);
+                        if(args.length < 4)
+                            numCores = Integer.parseInt(args[4]);
+                        else {
+                            numCores = 1;
+                        }
+                        cmdLineInput1 = args[1];
+                        createCoreThreads(numCores);
+                        if(timeQuantum > 1 && timeQuantum <=10)
+                            System.out.println("RR, time quantum: " + timeQuantum + " S2# " + "cores: " + args[4]);
+
+                    }
                 }
                 else if (args[1].equals("3")) {
                     cmdLineInput1 = args[1];
@@ -43,6 +76,10 @@ public class Main {
                     cmdLineInput1 = args[1];
                     createTaskThreads();
                     System.out.println("Preemptive SJF, S4");
+                    if (args[2].equals("-C") || args[2].equals("-c")) {
+                        System.out.println("Invalid input, preemptive can only be single core...");
+                        System.exit(1);
+                    }
                 }
                 else {
                     System.out.println("Invalid input, please re-run...");
@@ -66,7 +103,7 @@ public class Main {
     }
 
     public static void createTaskThreads() {
-        int T = Randomizer.generate(1,6);
+        int T = Randomizer.generate(1,25);
         int bTime;
         readyQueue = new LinkedList();
 
@@ -75,6 +112,7 @@ public class Main {
             Task t = new Task(i, bTime);
             readyQueue.add(t);
         }
+        printQueue();
         id = readyQueue.size();
         new CPU(0).start();
 
