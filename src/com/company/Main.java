@@ -1,7 +1,7 @@
 package com.company;
 
+import java.sql.SQLOutput;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
 public class Main {
@@ -12,7 +12,6 @@ public class Main {
     static LinkedList readyQueue;
     static Semaphore CPUaccess = new Semaphore(1);
     static Semaphore currentlyRunning = new Semaphore(1);
-    static Semaphore CPUbarrier = new Semaphore(0);
     static int id;
     static int cpuCount;
     static String cmdLineInput1;
@@ -39,7 +38,7 @@ public class Main {
                         createCoreThreads(numCores);
                         cmdLineInput1 = args[1];
                         //createTaskThreads();
-                        System.out.println("FirstComeFirstServe, S1, cores: " + args[3]);
+                        //System.out.println("FirstComeFirstServe, S1, cores: " + args[3]);
                     }
 
                 }
@@ -55,11 +54,7 @@ public class Main {
                         }
                     else if(args[3].equals("-C") || args[3].equals("-c")){
                         timeQuantum = Integer.parseInt(args[2]);
-                        if(args.length < 4)
-                            numCores = Integer.parseInt(args[4]);
-                        else {
-                            numCores = 1;
-                        }
+                        numCores = Integer.parseInt(args[4]);
                         cmdLineInput1 = args[1];
                         createCoreThreads(numCores);
                         if(timeQuantum > 1 && timeQuantum <=10)
@@ -111,6 +106,7 @@ public class Main {
             bTime = Randomizer.generate(2,10);
             Task t = new Task(i, bTime);
             readyQueue.add(t);
+            System.out.println("Main Thread     |  Creating process thread " + i);
         }
         printQueue();
         id = readyQueue.size();

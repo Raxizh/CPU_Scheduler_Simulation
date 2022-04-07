@@ -18,10 +18,10 @@ public class CPU extends Thread {
                 e.printStackTrace();
             }
             Main.cpuCount++;
-            System.out.println();
+            System.out.print("");
             Main.mutex.release();
             if (Main.cpuCount == Main.numCores) {
-                System.out.println("All CPUs have arrived");
+                System.out.println("Now releasing dispatchers.");
                 Main.sem.release(Main.numCores);
             }
 
@@ -29,6 +29,19 @@ public class CPU extends Thread {
             FCFSDispatcher();
         }
         else if (Main.cmdLineInput1.equals("2")) {
+            try {
+                Main.mutex.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Main.cpuCount++;
+            System.out.print("");
+            Main.mutex.release();
+            System.out.println("CPU " + getCPUId());
+            if (Main.cpuCount == Main.numCores) {
+                System.out.println("Now releasing dispatchers.");
+                Main.sem.release(Main.numCores);
+            }
             RoundRobinDispatcher();
         }
         else if (Main.cmdLineInput1.equals("3")) {
@@ -45,6 +58,7 @@ public class CPU extends Thread {
 
     public void FCFSDispatcher() {
         try {
+            System.out.println("Dispatcher " + getCPUId() + "   |  Running FCFS algorithm");
             Main.sem.acquire();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -70,16 +84,26 @@ public class CPU extends Thread {
     }
 
     public void RoundRobinDispatcher() {
+        try {
+            System.out.println("Dispatcher " + getCPUId() + "   |  Running RR algorithm, Time Quantum = " + Main.timeQuantum);
+            Main.sem.acquire();
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         int timeTemp = Main.timeQuantum;
         while (!Main.readyQueue.isEmpty()) {
             try {
-                System.out.println("------------- Using CPU " + getCPUId() + " -------------");
-                Main.printQueue();
+                //System.out.println("------------- Using CPU " + getCPUId() + " -------------");
+                //Main.printQueue();
                 Task t;
+                Main.CPUaccess.acquire();
                 t = (Task) Main.readyQueue.poll();
-                System.out.println("\n");
+                Main.CPUaccess.release();
+                System.out.println("Task " + t.getThreadId() + " using Dispatcher " + getCPUId() + "\n");
+                System.out.println("Task - " + t.getThreadId() + "    |    " + " MB=" + t.getMaxBurstTime() + ", CB=" + t.getCurrentBurstTime());
                 for(int i = 0; i < timeTemp; i++) {
-                    t.taskInfoDisplay();
+                    System.out.println(t.taskInfoDisplay() + " On CPU " + getCPUId());
                     if(t.getCurrentBurstTime() == t.getMaxBurstTime())
                         break;
                 }
@@ -101,6 +125,7 @@ public class CPU extends Thread {
         while (!Main.readyQueue.isEmpty()) {
             int shortestTaskTemp = 100;
             Task t;
+            //semaphore to find shortest before CPU 2
             int index = 0;
             for(int i = 0; i < Main.readyQueue.size(); i++){
                 if(((Task) Main.readyQueue.get(i)).getMaxBurstTime() < shortestTaskTemp) {
