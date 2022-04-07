@@ -19,7 +19,6 @@ public class Main {
     static Semaphore sem = new Semaphore(0);
     static Semaphore mutex = new Semaphore(1);
 
-    //two semaphores: CPU and RUN (currently running)
 
 
     public static void main(String[] args) {
@@ -45,6 +44,7 @@ public class Main {
                 else if (args[1].equals("2")) {
                     if(args.length < 4){
                         timeQuantum = Integer.parseInt(args[2]);
+                        numCores = 1;
                         cmdLineInput1 = args[1];
                         createTaskThreads();
                         if (timeQuantum > 1 && timeQuantum <= 10)
@@ -123,11 +123,15 @@ public class Main {
     }
 
     public static void addTaskThread() {
-        int bTime;
-        id++;
-        bTime = Randomizer.generate(2,10);
-        Task t = new Task(id, bTime);
-        readyQueue.add(t);
+        System.out.println(readyQueue.size());
+        if(id  <= 30) {
+            int bTime;
+            id++;
+            bTime = Randomizer.generate(2, 10);
+            Task t = new Task(id, bTime);
+            readyQueue.add(t);
+            printQueue();
+        }
 
     }
 
