@@ -83,12 +83,13 @@ public class Main {
                     System.out.println("Non-preemptive SJF, S3");
                 }
                 else if (args[1].equals("4")) {
-                    if (args[2].equals("-C") || args[2].equals("-c")) {
-                        System.out.println("Invalid input, preemptive can only be single core...");
-                    }
                     cmdLineInput1 = args[1];
                     createTaskThreads();
                     System.out.println("Preemptive SJF, S4");
+                    if (args[2].equals("-C") || args[2].equals("-c")) {
+                        System.out.println("Invalid input, preemptive can only be single core...");
+                    }
+
                 }
                 else {
                     System.out.println("Invalid input, please re-run...");
