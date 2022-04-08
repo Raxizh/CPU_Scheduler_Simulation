@@ -1,6 +1,5 @@
 package com.company;
 
-
 public class CPU extends Thread {
     int id;
 
@@ -40,9 +39,11 @@ public class CPU extends Thread {
             System.out.println("CPU " + getCPUId());
             if (Main.cpuCount == Main.numCores) {
                 System.out.println("Now releasing dispatchers.");
-                Main.sem.release();
+                Main.sem.release(Main.numCores);
             }
-            RoundRobinDispatcher();
+            try {
+                RoundRobinDispatcher();
+            } catch(Exception e) {System.exit(1);}
         }
         else if (Main.cmdLineInput1.equals("3")) {
             try {
@@ -53,10 +54,9 @@ public class CPU extends Thread {
             Main.cpuCount++;
             System.out.print("");
             Main.mutex.release();
-            System.out.println("CPU " + getCPUId());
             if (Main.cpuCount == Main.numCores) {
                 System.out.println("Now releasing dispatchers.");
-                Main.sem.release(Main.numCores); // release numofcores??
+                Main.sem.release(Main.numCores);
             }
             try {
                 NSFJDispatcher(); }
@@ -95,7 +95,7 @@ public class CPU extends Thread {
                 System.out.println("Task " + t.getThreadId() + " has finished executing" + "\n");
 
             } catch (Exception e) {
-                System.out.println("Task does not exist.");
+
                 System.exit(1);
             }
         }
@@ -103,10 +103,10 @@ public class CPU extends Thread {
 
     }
 
-    public void RoundRobinDispatcher() {
+    public void RoundRobinDispatcher() throws NullPointerException{
         try {
-            System.out.println("Dispatcher " + getCPUId() + "   |  Running RR algorithm, Time Quantum = " + Main.timeQuantum);
             Main.sem.acquire();
+            System.out.println("Dispatcher " + getCPUId() + "   |  Running RR algorithm, Time Quantum = " + Main.timeQuantum);
         }
         catch (InterruptedException e) {
             e.printStackTrace();
@@ -117,9 +117,13 @@ public class CPU extends Thread {
                 Task t;
                 Main.CPUaccess.acquire();
                 t = (Task) Main.readyQueue.poll();
+                if(t == null) {
+                    Main.CPUaccess.release();
+                    continue;
+                }
                 System.out.println("Task " + t.getThreadId() + " using Dispatcher " + getCPUId() + "\n");
-                Main.CPUaccess.release();
                 System.out.println("Task - " + t.getThreadId() + "    |    " + " MB=" + t.getMaxBurstTime() + ", CB=" + t.getCurrentBurstTime());
+                Main.CPUaccess.release();
                 for(int i = 0; i < timeTemp; i++) {
                     System.out.println(t.taskInfoDisplay() + " On CPU " + getCPUId());
                     if(t.getCurrentBurstTime() == t.getMaxBurstTime())
@@ -127,7 +131,7 @@ public class CPU extends Thread {
                 }
                 if(t.getCurrentBurstTime() != t.getMaxBurstTime()){
                     Main.CPUaccess.acquire();
-                    Main.readyQueue.offer(t);
+                    Main.readyQueue.add(t);
                     Main.CPUaccess.release();
                 }
                 else {
@@ -141,8 +145,6 @@ public class CPU extends Thread {
     }
 
     public void NSFJDispatcher() throws IndexOutOfBoundsException{
-        //System.out.println("------------- Using CPU " + getCPUId() + " -------------");
-        //Main.printQueue();
         try {
             System.out.println("Dispatcher " + getCPUId() + "   |  Running Non Preemptive - Shortest Job First");
             Main.sem.acquire();
@@ -152,10 +154,7 @@ public class CPU extends Thread {
             try {
                 int shortestTaskTemp = 100;
                 Task t;
-                //semaphore to find shortest before CPU 2
                 Main.CPUaccess.acquire();
-                /*if(Main.readyQueue.isEmpty())
-                    break;*/
                 int index = 0;
                 for (int i = 0; i < Main.readyQueue.size(); i++) {
                     if (((Task) Main.readyQueue.get(i)).getMaxBurstTime() < shortestTaskTemp) {
@@ -163,28 +162,18 @@ public class CPU extends Thread {
                         index = i;
                     }
                 }
-                //t = (Task) Main.readyQueue.get(index);
                 t = (Task) Main.readyQueue.remove(index);
                 System.out.println("Task " + t.getThreadId() + " using Dispatcher " + getCPUId() + "\n");
                 System.out.println("Task - " + t.getThreadId() + "    |    " + " MB=" + t.getMaxBurstTime() + ", CB=" + t.getCurrentBurstTime());
-                for(int i = 0; i < t.getMaxBurstTime(); i++) {
+                for (int i = 0; i < t.getMaxBurstTime(); i++) {
                     System.out.println(t.taskInfoDisplay() + " On CPU " + getCPUId());
-                    if(t.getCurrentBurstTime() >= t.getMaxBurstTime())
+                    if (t.getCurrentBurstTime() >= t.getMaxBurstTime())
                         break;
                 }
                 Main.CPUaccess.release();
                 System.out.println("Task " + t.getThreadId() + " has finished executing" + "\n");
-                if(Main.readyQueue.isEmpty()) {
-                    System.out.println("******queue is empty");
-                    //break;
-                }
-                if(index >= Main.readyQueue.size())
-                    System.out.println("********index >= size");
-                    //break;
-                //Main.readyQueue.remove(index);
-                }
+            }
             catch(Exception e) {
-                System.out.println("index out of bounds");
                 System.exit(1);}
 
         }
@@ -192,8 +181,7 @@ public class CPU extends Thread {
     }
 
     public void PSJFDispatcher() {
-        System.out.println("------------- Using CPU " + getCPUId() + " -------------");
-        Main.printQueue();
+
         while (!Main.readyQueue.isEmpty()) {
             int shortestTaskTemp = 100;
             Task t;
@@ -206,29 +194,26 @@ public class CPU extends Thread {
             }
             t = (Task) Main.readyQueue.get(index);
             for(int i = 0; i < t.getMaxBurstTime(); i++) {
-                int random = Main.Randomizer.generate(3,10);
+                int random = Main.Randomizer.generate(3, 10); //Determines how often task will be created (30% chance)
                 System.out.println(t.taskInfoDisplay() + " On CPU " + getCPUId());
-                if(Main.readyQueue.size() >= 25) {
+                if (Main.readyQueue.size() >= 25) {
                     random = 0;
                 }
-                if(random == 10) {
+                if (random == 10) {
                     Main.addTaskThread();
-                    //Main.printQueue();
                 }
-                if(((Task) Main.readyQueue.getLast()).getMaxBurstTime() < t.getMaxBurstTime()) {
+                if (((Task) Main.readyQueue.getLast()).getMaxBurstTime() < t.getMaxBurstTime()) {
                     t = (Task) Main.readyQueue.getLast();
                     System.out.println("Task " + t.getThreadId() + " has preempted with a burst time of " + t.getMaxBurstTime());
                 }
-                if(t.getCurrentBurstTime() >= t.getMaxBurstTime()) {
+                if (t.getCurrentBurstTime() >= t.getMaxBurstTime()) {
                     Main.readyQueue.remove(t);
                     System.out.println("Task " + t.getThreadId() + " has finished executing" + "\n");
-                    Main.printQueue();
                     break;
                 }
-
             }
-
-
         }
+
+        System.exit(1);
     }
 }
